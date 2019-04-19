@@ -1,2 +1,3 @@
 # react-form
-react form表单，双向绑定，支持field为数组或者对象
+支持一个大form表单拆分成若干个小form，支持跨多层级component使用同一个form表单。
+getFieldDecorator双向绑定，将支持到数组和对象。

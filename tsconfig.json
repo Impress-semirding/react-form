@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+      "outDir": "./dist/",
+      "sourceMap": true,
+      "noImplicitAny": false,
+      "experimentalDecorators": true,
+      "target": "es2017",
+      "jsx": "react",
+      "noImplicitUseStrict": true,
+      "moduleResolution": "node"
+  }
+}

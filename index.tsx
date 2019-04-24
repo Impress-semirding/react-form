@@ -1,6 +1,7 @@
 import * as React from 'react';
 import isEqual from 'lodash/isEqual';
 import set from 'lodash/set';
+import get from 'lodash/get';
 import Form from './form';
 
 interface FormProviderProps {
@@ -55,9 +56,15 @@ function createFormProvider() {
     }
   }
 
+  const setFieldsValue = ({ ...values }) => setFormData({ ...formData, ...values });
+
+  const getFieldValue = (field) => get(FormData, field);
+
   return {
     getFieldDecorator,
-    FormProvider
+    getFieldValue,
+    FormProvider,
+    setFieldsValue
   }
 }
 

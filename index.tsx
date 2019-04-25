@@ -4,6 +4,8 @@ import set from 'lodash/set';
 import get from 'lodash/get';
 import Form from './form';
 
+import { genField } from './utils'
+
 interface FormProviderProps {
   initialValue: object;
   submit: () => void;
@@ -17,14 +19,20 @@ interface Rule {
 }
 
 interface DecodeOption {
+  id: string;
   initialValue?: string;
   rules?: Array<Rule>[];
+  valuePropName?: string;
 }
 
-let cache = {};
+interface CreateOption {
+  name: string; //设置表单域内字段 id 的前缀,
+  onFieldsChange: (props: object, fields: any) => void;// field change回调
+}
 
-function createFormProvider(createOptions) {
-  const cache = {};
+let isTouchedcache = {};
+
+function createFormProvider(createOptions: CreateOption) {
   const [ formData, setFormData ] = React.useState({});
   const FormProvider: React.FC<FormProviderProps> = ({ initialValue, submit, children }) => {
     setFormData(initialValue);
@@ -33,60 +41,38 @@ function createFormProvider(createOptions) {
 
   const fieldsOptions: {} = {} as any;
 
-  const getFieldProps = (
-    name: string,
-    options: DecodeOption,
-  ) => ({
-    [fieldsOptions[name].valuePropName || 'value']: formData[name],
-    [fieldsOptions[name].trigger || 'onChange']: (e: string | any) => {
-      const value = (e && e.target) ? e.target.value : e;
-      setFormData(oldValues => {
-        const values  = {
-          ...oldValues,
-           [name]: value,
-        };
-
-        cache.currentField = name;
-        cache.fieldsTouched[name] = true;
-        if (createOptions.onValuesChange) {
-            createOptions.onValuesChange({
-              [name]: value,
-            });
-          }
-
-        return values;
-      });
-    },
-    // ['data-__field']: { errors: errors[name] },
-    // ['data-__meta']: {
-    //   validate: [{
-    //     rules: options.rules,
-    //   }],
-    // },
-  });
-
-  //  正在考虑是否需要支持property. => observer children form.
+  //  后面迭代需要支持trigger方式和error等
   function getFieldDecorator(field: string, options: DecodeOption) {
     return (component) => {
       const { props, children } = component;
-      const { initialValue, rules } = options;
+      const { id, initialValue, rules, valuePropName  } = options;
 
-      //  change state and not rerender.
-      if (initialValue) {
+      if (!isTouchedcache[field]) {
+        isTouchedcache[field] = false;
+      }
+
+      //  根据isTouch判断是否要更新formdata。如果为false，则使用初始值，不然使用更新后的值.
+      if (!isTouchedcache[field] && initialValue) {
         set(formData, field, initialValue);
-      } else {
+      } else if (!isTouchedcache[field]){
         set(formData, field, undefined);
+      }
+
+      const dynamicField: any= {
+        value: get(formData, field)
+      };
+
+      if (valuePropName) {
+        dynamicField[valuePropName] = get(formData, field);
+        delete dynamicField.value;
       }
 
       return React.cloneElement(
         component, {
           ...props,
-          value: formData[field],
-          // onChange: (value) => {
-          //   const newData = set(formData, field, value);
-          //   setFormData(newData)
-          // }
-          onChange: onFieldChange(field),
+          ...dynamicField,
+          id : genField(id || field, createOptions.name),
+          onChange: onFieldChange(field, formData),
         },
         children
       )
@@ -95,9 +81,17 @@ function createFormProvider(createOptions) {
 
   //  减少因多次render bind function导致的重复渲染。
   const onFieldChange = React.useCallback(
-    (field: string) => {
-      return (value) => {
-        const newData = set(formData, field, value);
+    (field: string, data: any) => {
+      return (ev) => {
+        let value;
+        if (ev.preventDefault) {
+          value = ev.target.value;
+        } else {
+          value = ev;
+        }
+        const orgin = Object.assign({}, data);
+        const newData = set(orgin, field, value);
+        isTouchedcache[field] = true;
         setFormData(newData)
       }
     },
@@ -109,6 +103,7 @@ function createFormProvider(createOptions) {
   const getFieldValue = (field) => get(FormData, field);
 
   return {
+    value: formData,
     getFieldDecorator,
     getFieldValue,
     FormProvider,

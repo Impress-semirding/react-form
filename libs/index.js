@@ -8,10 +8,20 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 import * as React from 'react';
+import isEqual from 'lodash/isEqual';
 import set from 'lodash/set';
 import get from 'lodash/get';
 import { genField } from './utils';
 let isTouchedcache = {};
+//  根据key优化更新子组件。
+const MemoComponent = React.memo((_a) => {
+    var { renderComponent, children } = _a, restProps = __rest(_a, ["renderComponent", "children"]);
+    console.log(restProps, 'rerender');
+    return React.cloneElement(renderComponent, Object.assign({}, restProps), children);
+}, (preProps, nextProps) => {
+    const { shouldCheckPropsKey } = preProps;
+    return isEqual(preProps[shouldCheckPropsKey], nextProps[shouldCheckPropsKey]);
+});
 function createFormProvider(createOptions) {
     const [formData, setFormData] = React.useState({});
     const FormProvider = ({ initialValue, submit, children }) => {
@@ -41,7 +51,18 @@ function createFormProvider(createOptions) {
                 dynamicField[valuePropName] = get(formData, field);
                 delete dynamicField.value;
             }
-            return React.cloneElement(component, Object.assign({}, props, dynamicField, { id: genField(id || field, createOptions.name), onChange: onFieldChange(field, formData) }), children);
+            return (React.createElement(MemoComponent, Object.assign({ shouldCheckPropsKey: valuePropName ? valuePropName : 'value', renderComponent: component }, props, dynamicField, { id: genField(id || field, createOptions.name), onChange: onFieldChange(field, formData) }), children));
+            //  每当form中一个field变化，都会导致所有getFieldDecorator绑定的组件更新，不太好.
+            //   return React.cloneElement(
+            //     component, {
+            //       ...props,
+            //       ...dynamicField,
+            //       id : genField(id || field, createOptions.name),
+            //       onChange: onFieldChange(field, formData),
+            //     },
+            //     children
+            //   )
+            // }
         };
     }
     //  减少因多次render bind function导致的重复渲染。

@@ -32,6 +32,24 @@ interface CreateOption {
 
 let isTouchedcache = {};
 
+//  根据key优化更新子组件。
+const MemoComponent = React.memo(({
+  renderComponent,
+  children,
+  ...restProps
+}) => {
+  console.log(restProps, 'rerender');
+  return React.cloneElement(
+    renderComponent, {
+      ...restProps,
+    },
+    children
+  )
+}, (preProps, nextProps) => {
+  const { shouldCheckPropsKey } = preProps;
+  return isEqual(preProps[shouldCheckPropsKey], nextProps[shouldCheckPropsKey]);
+});
+
 function createFormProvider(createOptions: CreateOption) {
   const [ formData, setFormData ] = React.useState({});
   const FormProvider: React.FC<FormProviderProps> = ({ initialValue, submit, children }) => {
@@ -67,15 +85,29 @@ function createFormProvider(createOptions: CreateOption) {
         delete dynamicField.value;
       }
 
-      return React.cloneElement(
-        component, {
-          ...props,
-          ...dynamicField,
-          id : genField(id || field, createOptions.name),
-          onChange: onFieldChange(field, formData),
-        },
-        children
+      return (
+        <MemoComponent
+          shouldCheckPropsKey={valuePropName ? valuePropName : 'value'}
+          renderComponent={component}
+          {...props}
+          {...dynamicField}
+          id={genField(id || field, createOptions.name)}
+          onChange={onFieldChange(field, formData)}
+        >
+          {children}
+        </MemoComponent>
       )
+    //  每当form中一个field变化，都会导致所有getFieldDecorator绑定的组件更新，不太好.
+    //   return React.cloneElement(
+    //     component, {
+    //       ...props,
+    //       ...dynamicField,
+    //       id : genField(id || field, createOptions.name),
+    //       onChange: onFieldChange(field, formData),
+    //     },
+    //     children
+    //   )
+    // }
     }
   }
 

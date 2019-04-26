@@ -3,14 +3,8 @@ import isEqual from 'lodash/isEqual';
 import set from 'lodash/set';
 import get from 'lodash/get';
 import Form from './form';
-
-import { genField } from './utils'
-
-interface FormProviderProps {
-  initialValue: object;
-  submit: () => void;
-  children: React.ReactNode;
-}
+import FormContext from './context';
+import { genField } from './utils';
 
 interface Rule {
   type: string;
@@ -50,14 +44,8 @@ const MemoComponent = React.memo(({
   return isEqual(preProps[shouldCheckPropsKey], nextProps[shouldCheckPropsKey]);
 });
 
-function createFormProvider(createOptions: CreateOption) {
-  const [ formData, setFormData ] = React.useState({});
-  const FormProvider: React.FC<FormProviderProps> = ({ initialValue, submit, children }) => {
-    setFormData(initialValue);
-    return <div>{children}</div>
-  }
-
-  const fieldsOptions: {} = {} as any;
+function useForm(createOptions: CreateOption) {
+  const { formData, setFormData } = React.useContext(FormContext);
 
   //  后面迭代需要支持trigger方式和error等
   function getFieldDecorator(field: string, options: DecodeOption) {
@@ -86,16 +74,20 @@ function createFormProvider(createOptions: CreateOption) {
       }
 
       return (
-        <MemoComponent
-          shouldCheckPropsKey={valuePropName ? valuePropName : 'value'}
-          renderComponent={component}
-          {...props}
-          {...dynamicField}
-          id={genField(id || field, createOptions.name)}
-          onChange={onFieldChange(field, formData)}
-        >
-          {children}
-        </MemoComponent>
+        <FormContext.Consumer>
+          {({ formData, setFormData }) => (
+            <MemoComponent
+              shouldCheckPropsKey={valuePropName ? valuePropName : 'value'}
+              renderComponent={component}
+              {...props}
+              {...dynamicField}
+              id={genField(id || field, createOptions.name)}
+              onChange={onFieldChange(field, formData)}
+            >
+              {children}
+            </MemoComponent>
+          )}
+        </FormContext.Consumer>
       )
     //  每当form中一个field变化，都会导致所有getFieldDecorator绑定的组件更新，不太好.
     //   return React.cloneElement(
@@ -124,6 +116,7 @@ function createFormProvider(createOptions: CreateOption) {
         const orgin = Object.assign({}, data);
         const newData = set(orgin, field, value);
         isTouchedcache[field] = true;
+
         setFormData(newData)
       }
     },
@@ -135,12 +128,11 @@ function createFormProvider(createOptions: CreateOption) {
   const getFieldValue = (field) => get(FormData, field);
 
   return {
-    value: formData,
+    values: formData,
     getFieldDecorator,
     getFieldValue,
-    FormProvider,
     setFieldsValue
   }
 }
 
-export default createFormProvider;
+export default useForm;

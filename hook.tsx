@@ -3,14 +3,8 @@ import isEqual from 'lodash/isEqual';
 import set from 'lodash/set';
 import get from 'lodash/get';
 import Form from './form';
-
-import { genField } from './utils'
-
-interface FormProviderProps {
-  initialValue: object;
-  submit: () => void;
-  children: React.ReactNode;
-}
+import FormContext from './context';
+import { genField } from './utils';
 
 interface Rule {
   type: string;
@@ -50,30 +44,8 @@ const MemoComponent = React.memo(({
   return isEqual(preProps[shouldCheckPropsKey], nextProps[shouldCheckPropsKey]);
 });
 
-function createFormProvider(createOptions: CreateOption) {
-  const [ formData, setFormData ] = React.useState({});
-  const FormContext = React.createContext({
-    formData: {},
-    setFormData: () => {}
-  });
-
-  const FormProvider: React.FC<FormProviderProps> = ({ initialValue, onSubmit, children }) => {
-    if (initialValue) {
-      setFormData(initialValue);
-    }
-    return (
-      <FormContext.Provider
-        value={{
-          formData,
-          setFormData
-        }}
-      > 
-        {children}
-      </FormContext.Provider>
-    )
-  }
-
-  const fieldsOptions: {} = {} as any;
+function useForm(createOptions: CreateOption) {
+  const { formData, setFormData } = React.useContext(FormContext);
 
   //  后面迭代需要支持trigger方式和error等
   function getFieldDecorator(field: string, options: DecodeOption) {
@@ -156,12 +128,11 @@ function createFormProvider(createOptions: CreateOption) {
   const getFieldValue = (field) => get(FormData, field);
 
   return {
-    value: formData,
+    values: formData,
     getFieldDecorator,
     getFieldValue,
-    FormProvider,
     setFieldsValue
   }
 }
 
-export default createFormProvider;
+export default useForm;

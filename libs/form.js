@@ -1,14 +1,16 @@
 import * as React from 'react';
 import FormContext from './context';
-const Form = ({ initialValue, onSubmit, children }) => {
-    const [formData, setFormData] = React.useState({});
-    // if (initialValue) {
-    //   setFormData(initialValue);
-    // }
+const Form = ({ initialValues, children, onSubmit }) => {
+    const [formData, setFormData] = React.useState(initialValues);
+    function submit() {
+        onSubmit(formData);
+    }
     return (React.createElement(FormContext.Provider, { value: {
             formData,
             setFormData
-        } }, children));
+        } },
+        React.createElement("div", null, "updated"),
+        React.createElement("form", { onSubmit: submit }, children)));
 };
 export default Form;
 //# sourceMappingURL=form.js.map

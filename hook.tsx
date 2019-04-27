@@ -30,6 +30,8 @@ interface MemoProps {
   children: React.ReactNode;
 }
 
+let isTouchedcache = {};
+
 //  根据key优化更新子组件。
 const MemoComponent = React.memo(({
   renderComponent,
@@ -49,40 +51,74 @@ const MemoComponent = React.memo(({
 });
 
 function setValue(key, value) {
-  const { formData, setFormData } = React.useContext(FormContext);
+  const { formData, setFormData } = this;
   const orgin = Object.assign({}, formData);
   const newData = set(orgin, key, value);
   setFormData(newData)
 }
 
 function useForm(createOptions: CreateOption) {
-  let isTouchedcache = {};
   //  后面迭代需要支持trigger方式和error等
   function getFieldDecorator(field: string, options: DecodeOption) {
     return (component) => {
-      const { formData, setFormData } = React.useContext(FormContext);
       const { props, children } = component;
       const { id, initialValue, rules, valuePropName  } = options;
+      const { formData, setFormData } = React.useContext(FormContext);
 
       if (!isTouchedcache[field]) {
         isTouchedcache[field] = false;
       }
 
-      //  根据isTouch判断是否要更新formdata。如果为false，则使用初始值，不然使用更新后的值.
+      /**
+       * 根据isTouch判断是否要更新formdata。如果为false，则使用初始值，不然使用更新后的值.
+       * initialValue优先级高于initialValues中的值。
+       * 需要考虑batch 更新，需要优化。
+       */
+      React.useMemo(() => {
+        if (!isTouchedcache[field] && initialValue) {
+          setValue.apply({ formData, setFormData }, [field, initialValue]);
+        } else if (!isTouchedcache[field] && !get(formData, field)){
+          setValue.apply({ formData, setFormData }, [field, undefined]);
+        }
+      }, []);
+
+      //  init child value.
+      let value;
       if (!isTouchedcache[field] && initialValue) {
-        setValue(field, initialValue);
-      } else if (!isTouchedcache[field]){
-        setValue(field, undefined)
+        value = initialValue;
+      } else if (!isTouchedcache[field] && get(formData, field)){
+        value = get(formData, field);
+      } else if (isTouchedcache[field]){
+        value = get(formData, field);
+      } else {
+        value = undefined;
       }
 
       const dynamicField: any= {
-        value: get(formData, field)
+        value
       };
 
       if (valuePropName) {
-        dynamicField[valuePropName] = get(formData, field);
+        dynamicField[valuePropName] = value;
         delete dynamicField.value;
       }
+
+      //  减少因多次render bind function导致的重复渲染。
+      const onFieldChange = React.useCallback(
+        (field: string) => {
+          return (ev) => {
+            let value;
+            if (ev.preventDefault) {
+              value = ev.target.value;
+            } else {
+              value = ev;
+            }
+            isTouchedcache[field] = true;
+            setValue.apply({ formData, setFormData }, [field, value]);
+          }
+        },
+        [],
+      );
 
       return (
         <MemoComponent
@@ -98,23 +134,6 @@ function useForm(createOptions: CreateOption) {
       )
     }
   }
-
-  //  减少因多次render bind function导致的重复渲染。
-  const onFieldChange = React.useCallback(
-    (field: string) => {
-      return (ev) => {
-        let value;
-        if (ev.preventDefault) {
-          value = ev.target.value;
-        } else {
-          value = ev;
-        }
-        isTouchedcache[field] = true;
-        setValue(field, value);
-      }
-    },
-    [],
-  );
 
   const setFieldsValue = ({ ...values }) => {
     const { formData, setFormData } = React.useContext(FormContext);

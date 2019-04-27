@@ -2,24 +2,29 @@ import * as React from 'react';
 import FormContext from './context';
 
 interface FormProviderProps {
-  initialValue: object;
-  onSubmit: () => void;
+  initialValues: object;
+  onSubmit: (data) => void;
   children: React.ReactNode;
 }
 
-const Form: React.FC<FormProviderProps> = ({ initialValue, onSubmit, children }) => {
-  const [ formData, setFormData ] = React.useState({});
-  // if (initialValue) {
-  //   setFormData(initialValue);
-  // }
+const Form: React.FC<FormProviderProps> = ({ initialValues, children, onSubmit }) => {
+  const [ formData, setFormData ] = React.useState(initialValues);
+
+  function submit() {
+    onSubmit(formData);
+  }
+
   return (
     <FormContext.Provider
       value={{
         formData,
         setFormData
       }}
-    > 
-      {children}
+    >
+      <div>updated</div>
+      <form onSubmit={submit}>
+        {children}
+      </form>
     </FormContext.Provider>
   )
 }

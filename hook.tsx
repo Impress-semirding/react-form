@@ -2,6 +2,7 @@ import * as React from 'react';
 import isEqual from 'lodash/isEqual';
 import set from 'lodash/set';
 import get from 'lodash/get';
+
 import Form from './form';
 import FormContext from './context';
 import { genField } from './utils';
@@ -24,14 +25,17 @@ interface CreateOption {
   onFieldsChange: (props: object, fields: any) => void;// field change回调
 }
 
-let isTouchedcache = {};
+interface MemoProps {
+  renderComponent: React.ReactNode;
+  children: React.ReactNode;
+}
 
 //  根据key优化更新子组件。
 const MemoComponent = React.memo(({
   renderComponent,
   children,
   ...restProps
-}) => {
+}: any) => {
   console.log(restProps, 'rerender');
   return React.cloneElement(
     renderComponent, {
@@ -44,12 +48,19 @@ const MemoComponent = React.memo(({
   return isEqual(preProps[shouldCheckPropsKey], nextProps[shouldCheckPropsKey]);
 });
 
-function useForm(createOptions: CreateOption) {
+function setValue(key, value) {
   const { formData, setFormData } = React.useContext(FormContext);
+  const orgin = Object.assign({}, formData);
+  const newData = set(orgin, key, value);
+  setFormData(newData)
+}
 
+function useForm(createOptions: CreateOption) {
+  let isTouchedcache = {};
   //  后面迭代需要支持trigger方式和error等
   function getFieldDecorator(field: string, options: DecodeOption) {
     return (component) => {
+      const { formData, setFormData } = React.useContext(FormContext);
       const { props, children } = component;
       const { id, initialValue, rules, valuePropName  } = options;
 
@@ -59,9 +70,9 @@ function useForm(createOptions: CreateOption) {
 
       //  根据isTouch判断是否要更新formdata。如果为false，则使用初始值，不然使用更新后的值.
       if (!isTouchedcache[field] && initialValue) {
-        set(formData, field, initialValue);
+        setValue(field, initialValue);
       } else if (!isTouchedcache[field]){
-        set(formData, field, undefined);
+        setValue(field, undefined)
       }
 
       const dynamicField: any= {
@@ -74,38 +85,23 @@ function useForm(createOptions: CreateOption) {
       }
 
       return (
-        <FormContext.Consumer>
-          {({ formData, setFormData }) => (
-            <MemoComponent
-              shouldCheckPropsKey={valuePropName ? valuePropName : 'value'}
-              renderComponent={component}
-              {...props}
-              {...dynamicField}
-              id={genField(id || field, createOptions.name)}
-              onChange={onFieldChange(field, formData)}
-            >
-              {children}
-            </MemoComponent>
-          )}
-        </FormContext.Consumer>
+        <MemoComponent
+          shouldCheckPropsKey={valuePropName ? valuePropName : 'value'}
+          renderComponent={component}
+          {...props}
+          {...dynamicField}
+          id={genField(id || field, createOptions.name)}
+          onChange={onFieldChange(field)}
+        >
+          {children}
+        </MemoComponent>
       )
-    //  每当form中一个field变化，都会导致所有getFieldDecorator绑定的组件更新，不太好.
-    //   return React.cloneElement(
-    //     component, {
-    //       ...props,
-    //       ...dynamicField,
-    //       id : genField(id || field, createOptions.name),
-    //       onChange: onFieldChange(field, formData),
-    //     },
-    //     children
-    //   )
-    // }
     }
   }
 
   //  减少因多次render bind function导致的重复渲染。
   const onFieldChange = React.useCallback(
-    (field: string, data: any) => {
+    (field: string) => {
       return (ev) => {
         let value;
         if (ev.preventDefault) {
@@ -113,22 +109,24 @@ function useForm(createOptions: CreateOption) {
         } else {
           value = ev;
         }
-        const orgin = Object.assign({}, data);
-        const newData = set(orgin, field, value);
         isTouchedcache[field] = true;
-
-        setFormData(newData)
+        setValue(field, value);
       }
     },
     [],
   );
 
-  const setFieldsValue = ({ ...values }) => setFormData({ ...formData, ...values });
+  const setFieldsValue = ({ ...values }) => {
+    const { formData, setFormData } = React.useContext(FormContext);
+    setFormData({ ...formData, ...values });
+  }
 
-  const getFieldValue = (field) => get(FormData, field);
+  const getFieldValue = (field) => {
+    const { formData } = React.useContext(FormContext);
+    get(FormData, field);
+  }
 
   return {
-    values: formData,
     getFieldDecorator,
     getFieldValue,
     setFieldsValue

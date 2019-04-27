@@ -31,6 +31,7 @@ interface MemoProps {
 }
 
 let isTouchedcache = {};
+let globalContext = {};
 
 //  根据key优化更新子组件。
 const MemoComponent = React.memo(({
@@ -54,6 +55,7 @@ function setValue(key, value) {
   const { formData, setFormData } = this;
   const orgin = Object.assign({}, formData);
   const newData = set(orgin, key, value);
+  globalContext = newData;
   setFormData(newData)
 }
 
@@ -76,9 +78,9 @@ function useForm(createOptions: CreateOption) {
        */
       React.useMemo(() => {
         if (!isTouchedcache[field] && initialValue) {
-          setValue.apply({ formData, setFormData }, [field, initialValue]);
+          setValue.apply({ formData: globalContext, setFormData }, [field, initialValue]);
         } else if (!isTouchedcache[field] && !get(formData, field)){
-          setValue.apply({ formData, setFormData }, [field, undefined]);
+          setValue.apply({ formData: globalContext, setFormData }, [field, undefined]);
         }
       }, []);
 
@@ -114,7 +116,8 @@ function useForm(createOptions: CreateOption) {
               value = ev;
             }
             isTouchedcache[field] = true;
-            setValue.apply({ formData, setFormData }, [field, value]);
+            //  由于MemoComponent绑定的函数还处于栈中，formData也就还是旧的那个，故而不会更新，所以用全局变量替代。
+            setValue.apply({ formData: globalContext, setFormData }, [field, value]);
           }
         },
         [],

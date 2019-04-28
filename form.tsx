@@ -1,6 +1,5 @@
 import * as React from 'react';
-import set from 'lodash/set';
-import merge from 'lodash/merge';
+import { set, merge }  from 'lodash';
 
 import FormContext from './context';
 
@@ -13,7 +12,7 @@ interface FormProviderProps {
 let fieldCache = {};
 let globalCache = {};
 
-const Form: React.FC<FormProviderProps> = ({ initialValues, children, onSubmit }) => {
+const FormProvider: React.FC<FormProviderProps> = ({ initialValues, children, onSubmit }) => {
   const [ formData, setFormData ] = React.useState(initialValues);
 
   function submit() {
@@ -52,7 +51,7 @@ const Form: React.FC<FormProviderProps> = ({ initialValues, children, onSubmit }
   )
 }
 
-export default Form;
+export default FormProvider;
 
 export {
   fieldCache

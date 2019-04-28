@@ -5,6 +5,8 @@ getFieldDecorator('a.b',{})
 getFieldDecorator('a[0]',{})
 
 
-demo: https://codesandbox.io/s/v09ln4vwjl
+demo运行方式
+cd my-demo
+npm start
 
 新特性还在考虑，项目更新中...

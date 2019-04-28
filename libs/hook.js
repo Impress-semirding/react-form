@@ -20,8 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
-var isEqual_1 = require("lodash/isEqual");
-var get_1 = require("lodash/get");
+var lodash_1 = require("lodash");
 var form_1 = require("./form");
 var context_1 = require("./context");
 var utils_1 = require("./utils");
@@ -33,7 +32,7 @@ var MemoComponent = React.memo(function (_a) {
     return React.cloneElement(renderComponent, __assign({}, restProps), children);
 }, function (preProps, nextProps) {
     var shouldCheckPropsKey = preProps.shouldCheckPropsKey;
-    return isEqual_1.default(preProps[shouldCheckPropsKey], nextProps[shouldCheckPropsKey]);
+    return lodash_1.isEqual(preProps[shouldCheckPropsKey], nextProps[shouldCheckPropsKey]);
 });
 function useForm(createOptions) {
     createOptions = createOptions;
@@ -60,7 +59,7 @@ function getFieldDecorator(field, options) {
             if (!isTouchedcache && initialValue) {
                 form_1.fieldCache[field].cacheValue = initialValue;
             }
-            else if (!isTouchedcache && !get_1.default(formData, field)) {
+            else if (!isTouchedcache && !lodash_1.get(formData, field)) {
                 form_1.fieldCache[field].cacheValue = null;
             }
         }, []);
@@ -69,11 +68,11 @@ function getFieldDecorator(field, options) {
         if (!isTouchedcache && initialValue) {
             value = initialValue;
         }
-        else if (!isTouchedcache && get_1.default(formData, field)) {
-            value = get_1.default(formData, field);
+        else if (!isTouchedcache && lodash_1.get(formData, field)) {
+            value = lodash_1.get(formData, field);
         }
         else if (isTouchedcache) {
-            value = get_1.default(formData, field);
+            value = lodash_1.get(formData, field);
         }
         else {
             value = null;
@@ -109,7 +108,7 @@ var setFieldsValue = function (values) {
 };
 var getFieldValue = function (field) {
     var formData = React.useContext(context_1.default).formData;
-    return get_1.default(formData, field);
+    return lodash_1.get(formData, field);
 };
 var getFieldValues = function () {
     var formData = React.useContext(context_1.default).formData;

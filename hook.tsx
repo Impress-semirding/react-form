@@ -3,7 +3,7 @@ import isEqual from 'lodash/isEqual';
 import set from 'lodash/set';
 import get from 'lodash/get';
 
-import Form from './form';
+import { fieldCache } from './form';
 import FormContext from './context';
 import { genField } from './utils';
 
@@ -30,45 +30,39 @@ interface MemoProps {
   children: React.ReactNode;
 }
 
-let isTouchedcache = {};
-let globalContext = {};
-
 //  根据key优化更新子组件。
-const MemoComponent = React.memo(({
-  renderComponent,
-  children,
-  ...restProps
-}: any) => {
-  console.log(restProps, 'rerender');
-  return React.cloneElement(
-    renderComponent, {
-      ...restProps,
-    },
-    children
-  )
-}, (preProps, nextProps) => {
-  const { shouldCheckPropsKey } = preProps;
-  return isEqual(preProps[shouldCheckPropsKey], nextProps[shouldCheckPropsKey]);
-});
-
-function setValue(key, value) {
-  const { formData, setFormData } = this;
-  const orgin = Object.assign({}, formData);
-  const newData = set(orgin, key, value);
-  globalContext = newData;
-  setFormData(newData)
-}
+// const MemoComponent = React.memo(({
+//   renderComponent,
+//   children,
+//   ...restProps
+// }: any) => {
+//   console.log(restProps, 'rerender');
+//   return React.cloneElement(
+//     renderComponent, {
+//       ...restProps,
+//     },
+//     children
+//   )
+// }, (preProps, nextProps) => {
+//   const { shouldCheckPropsKey } = preProps;
+//   return isEqual(preProps[shouldCheckPropsKey], nextProps[shouldCheckPropsKey]);
+// });
 
 function useForm(createOptions: CreateOption) {
+  let closureTest = 0;
+  const { formData, setFields } = React.useContext(FormContext);
   //  后面迭代需要支持trigger方式和error等
   function getFieldDecorator(field: string, options: DecodeOption) {
     return (component) => {
       const { props, children } = component;
       const { id, initialValue, rules, valuePropName  } = options;
-      const { formData, setFormData } = React.useContext(FormContext);
+      if (!fieldCache[field]) {
+        fieldCache[field] = {};
+      }
+      const { isTouchedcache , cacheValue } = fieldCache[field];
 
-      if (!isTouchedcache[field]) {
-        isTouchedcache[field] = false;
+      if (!isTouchedcache) {
+        fieldCache[field].isTouchedcache = false;
       }
 
       /**
@@ -77,23 +71,23 @@ function useForm(createOptions: CreateOption) {
        * 需要考虑batch 更新，需要优化。
        */
       React.useMemo(() => {
-        if (!isTouchedcache[field] && initialValue) {
-          setValue.apply({ formData: globalContext, setFormData }, [field, initialValue]);
-        } else if (!isTouchedcache[field] && !get(formData, field)){
-          setValue.apply({ formData: globalContext, setFormData }, [field, undefined]);
+        if (!isTouchedcache && initialValue) {
+          fieldCache[field].cacheValue = initialValue;
+        } else if (!isTouchedcache && !get(formData, field)){
+          fieldCache[field].cacheValue = null;
         }
       }, []);
 
       //  init child value.
       let value;
-      if (!isTouchedcache[field] && initialValue) {
+      if (!isTouchedcache && initialValue) {
         value = initialValue;
-      } else if (!isTouchedcache[field] && get(formData, field)){
+      } else if (!isTouchedcache && get(formData, field)){
         value = get(formData, field);
-      } else if (isTouchedcache[field]){
+      } else if (isTouchedcache){
         value = get(formData, field);
       } else {
-        value = undefined;
+        value = null;
       }
 
       const dynamicField: any= {
@@ -106,41 +100,58 @@ function useForm(createOptions: CreateOption) {
       }
 
       //  减少因多次render bind function导致的重复渲染。
-      const onFieldChange = React.useCallback(
-        (field: string) => {
-          return (ev) => {
-            let value;
-            if (ev.preventDefault) {
-              value = ev.target.value;
-            } else {
-              value = ev;
-            }
-            isTouchedcache[field] = true;
-            //  由于MemoComponent绑定的函数还处于栈中，formData也就还是旧的那个，故而不会更新，所以用全局变量替代。
-            setValue.apply({ formData: globalContext, setFormData }, [field, value]);
+      // const onFieldChange = React.useCallback(
+      //   (field: string) => {
+      //     return (ev) => {
+      //       let value;
+      //       if (ev.preventDefault) {
+      //         value = ev.target.value;
+      //       } else {
+      //         value = ev;
+      //       }
+      //       console.log(closureForm)
+      //       isTouchedcache[field] = true;
+      //       if (field === 'm' || field === 'obj.c[0]') {
+      //         closureTest = 1;
+      //       }
+      //       //  由于MemoComponent绑定的函数还处于栈中，formData也就还是旧的那个，故而不会更新，所以用全局变量替代。
+      //       setFields({ [field]: value });
+      //     }
+      //   },
+      //   [],
+      // );
+      const onFieldChange = (field: string) => {
+        return (ev) => {
+          let value;
+          if (ev.preventDefault) {
+            value = ev.target.value;
+          } else {
+            value = ev;
           }
+          fieldCache[field].isTouchedcache = true;
+          if (field === 'm' || field === 'obj.c[0]') {
+            closureTest = 1;
+          }
+          //  由于MemoComponent绑定的函数还处于栈中，formData也就还是旧的那个，故而不会更新，所以用全局变量替代。
+          setFields({ [field]: value });
+        }
+      }
+      
+      return React.cloneElement(
+        component, {
+          ...props,
+          ...dynamicField,
+          id: genField(id || field, createOptions.name),
+          onChange: onFieldChange(field)
         },
-        [],
-      );
-
-      return (
-        <MemoComponent
-          shouldCheckPropsKey={valuePropName ? valuePropName : 'value'}
-          renderComponent={component}
-          {...props}
-          {...dynamicField}
-          id={genField(id || field, createOptions.name)}
-          onChange={onFieldChange(field)}
-        >
-          {children}
-        </MemoComponent>
+        children
       )
     }
   }
 
-  const setFieldsValue = ({ ...values }) => {
-    const { formData, setFormData } = React.useContext(FormContext);
-    setFormData({ ...formData, ...values });
+  const setFieldsValue = (values) => {
+    const { formData, setFields } = React.useContext(FormContext);
+    setFields(values);
   }
 
   const getFieldValue = (field) => {

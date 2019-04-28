@@ -1,4 +1,6 @@
 import * as React from 'react';
+import set from 'lodash/set';
+
 import FormContext from './context';
 
 interface FormProviderProps {
@@ -7,18 +9,35 @@ interface FormProviderProps {
   children: React.ReactNode;
 }
 
+let fieldCache = {};
+
 const Form: React.FC<FormProviderProps> = ({ initialValues, children, onSubmit }) => {
   const [ formData, setFormData ] = React.useState(initialValues);
 
   function submit() {
-    onSubmit(formData);
+    let data = Object.assign({}, formData);
+    Object.keys(fieldCache).forEach(field => {
+      const { isTouchedcache , cacheValue } = fieldCache[field];
+      if (!isTouchedcache && (cacheValue || cacheValue === null)) {
+        set(data, field, cacheValue);
+      }
+    });
+    onSubmit(data);
+  }
+
+  function setFields(options: object) {
+    const data = Object.assign({},formData);
+    Object.keys(options).forEach(key => {
+      set(data,key, options[key])
+    });
+    setFormData(data);
   }
 
   return (
     <FormContext.Provider
       value={{
         formData,
-        setFormData
+        setFields
       }}
     >
       <div>updated</div>
@@ -30,3 +49,7 @@ const Form: React.FC<FormProviderProps> = ({ initialValues, children, onSubmit }
 }
 
 export default Form;
+
+export {
+  fieldCache
+}

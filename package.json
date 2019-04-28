@@ -1,8 +1,8 @@
 {
-  "name": "react-form-tmp1",
-  "version": "1.1.0",
+  "name": "use-form-hooks",
+  "version": "1.0.9",
   "description": "支持一个大form表单拆分成若干个小form，支持跨多层级component使用同一个form表单。 getFieldDecorator双向绑定，将支持到数组和对象。",
-  "main": "index.js",
+  "main": "libs/index.js",
   "dependencies": {
     "lodash": "^4.17.11",
     "react": "^16.8.6",

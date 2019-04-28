@@ -1,13 +1,16 @@
-export default class createField {
-    constructor() {
+Object.defineProperty(exports, "__esModule", { value: true });
+var createField = /** @class */ (function () {
+    function createField() {
         this.field = {};
     }
-    isValid(str) {
+    createField.prototype.isValid = function (str) {
         if (this.field[str]) {
-            throw Error(`${str} bind mutiple.`);
+            throw Error(str + " bind mutiple.");
         }
-    }
-    setField(str) {
-    }
-}
+    };
+    createField.prototype.setField = function (str) {
+    };
+    return createField;
+}());
+exports.default = createField;
 //# sourceMappingURL=fields.js.map

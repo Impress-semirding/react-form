@@ -1,7 +1,8 @@
-import * as React from 'react';
-const FormContext = React.createContext({
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = require("react");
+var FormContext = React.createContext({
     formData: {},
-    setFormData: (params) => { }
+    setFormData: function (params) { }
 });
-export default FormContext;
+exports.default = FormContext;
 //# sourceMappingURL=context.js.map

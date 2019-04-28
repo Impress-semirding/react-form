@@ -1,5 +1,6 @@
 import * as React from 'react';
 import set from 'lodash/set';
+import merge from 'lodash/merge';
 
 import FormContext from './context';
 
@@ -16,7 +17,8 @@ const Form: React.FC<FormProviderProps> = ({ initialValues, children, onSubmit }
   const [ formData, setFormData ] = React.useState(initialValues);
 
   function submit() {
-    let data = Object.assign({}, formData);
+    let a: any = {}
+    let data = merge({}, formData);
     Object.keys(fieldCache).forEach(field => {
       const { isTouchedcache , cacheValue } = fieldCache[field];
       if (!isTouchedcache && (cacheValue || cacheValue === null)) {
@@ -28,7 +30,7 @@ const Form: React.FC<FormProviderProps> = ({ initialValues, children, onSubmit }
 
   //  由于getFieldDecorator是闭包返回Component，优化情况下可能会导致form值没有同步，故而全局变量记录同步。
   function setFields(options: object) {
-    const data = Object.assign({},globalCache);
+    const data = merge({},globalCache);
     Object.keys(options).forEach(key => {
       set(data,key, options[key])
     });
@@ -43,7 +45,6 @@ const Form: React.FC<FormProviderProps> = ({ initialValues, children, onSubmit }
         setFields
       }}
     >
-      <div>updated</div>
       <form onSubmit={submit}>
         {children}
       </form>

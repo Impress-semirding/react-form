@@ -4,9 +4,9 @@
       "sourceMap": true,
       "noImplicitAny": false,
       "experimentalDecorators": true,
-      "target": "es6",
+      "target": "es5",
       "jsx": "react",
       "noImplicitUseStrict": true,
-      "moduleResolution": "node"
+      "module": "commonjs"
   }
 }

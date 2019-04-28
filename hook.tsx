@@ -30,26 +30,7 @@ interface MemoProps {
   children: React.ReactNode;
 }
 
-//  根据key优化更新子组件。
-// const MemoComponent = React.memo(({
-//   renderComponent,
-//   children,
-//   ...restProps
-// }: any) => {
-//   console.log(restProps, 'rerender');
-//   return React.cloneElement(
-//     renderComponent, {
-//       ...restProps,
-//     },
-//     children
-//   )
-// }, (preProps, nextProps) => {
-//   const { shouldCheckPropsKey } = preProps;
-//   return isEqual(preProps[shouldCheckPropsKey], nextProps[shouldCheckPropsKey]);
-// });
-
 function useForm(createOptions: CreateOption) {
-  let closureTest = 0;
   const { formData, setFields } = React.useContext(FormContext);
   //  后面迭代需要支持trigger方式和error等
   function getFieldDecorator(field: string, options: DecodeOption) {
@@ -129,9 +110,6 @@ function useForm(createOptions: CreateOption) {
             value = ev;
           }
           fieldCache[field].isTouchedcache = true;
-          if (field === 'm' || field === 'obj.c[0]') {
-            closureTest = 1;
-          }
           //  由于MemoComponent绑定的函数还处于栈中，formData也就还是旧的那个，故而不会更新，所以用全局变量替代。
           setFields({ [field]: value });
         }

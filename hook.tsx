@@ -175,6 +175,14 @@ const resetFields = (names: string[]) => {
   setFormData(data);
 }
 
+const connect = () => {
+  const { formData, setFormData } = React.useContext(FormContext);
+  return {
+    values: formData,
+    errors: []
+  }
+}
+
 const hooks = {
   useForm,
   getFieldDecorator,
@@ -182,7 +190,8 @@ const hooks = {
   getFieldsValue,
   getFieldValue,
   isFieldTouched,
-  resetFields
+  resetFields,
+  connect
 }
 
 export default hooks;

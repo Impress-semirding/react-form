@@ -8,5 +8,9 @@
       "jsx": "react",
       "noImplicitUseStrict": true,
       "module": "commonjs"
-  }
+  },
+  "exclude": [
+    "field.tsx",
+    "node_modules"
+  ]
 }

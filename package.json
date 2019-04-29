@@ -4,6 +4,7 @@
   "description": "支持一个大form表单拆分成若干个小form，支持跨多层级component使用同一个form表单。 getFieldDecorator双向绑定，将支持到数组和对象。",
   "main": "libs/index.js",
   "dependencies": {
+    "isarray": "^2.0.4",
     "lodash": "^4.17.11",
     "react": "^16.8.6",
     "tsc": "^1.20150623.0"

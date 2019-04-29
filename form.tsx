@@ -1,19 +1,21 @@
 import * as React from 'react';
 import { set, merge }  from 'lodash';
 
+
 import FormContext from './context';
 
 interface FormProviderProps {
-  initialValues: object;
+  initialValues?: object;
   onSubmit: (data) => void;
   children: React.ReactNode;
 }
 
 let fieldCache = {};
 let globalCache = {};
+let initial = null;
 
 const FormProvider: React.FC<FormProviderProps> = ({ initialValues, children, onSubmit }) => {
-  const [ formData, setFormData ] = React.useState(initialValues);
+  const [ formData, setFormData ] = React.useState(initialValues || {});
 
   function submit() {
     let a: any = {}
@@ -37,11 +39,17 @@ const FormProvider: React.FC<FormProviderProps> = ({ initialValues, children, on
     setFormData(data);
   }
 
+  //  use by reset resetFields.
+  if (!initial) {
+    initial = merge({}, initialValues);
+  }
+
   return (
     <FormContext.Provider
       value={{
         formData,
-        setFields
+        setFields,
+        setFormData
       }}
     >
       <form onSubmit={submit}>
@@ -54,5 +62,6 @@ const FormProvider: React.FC<FormProviderProps> = ({ initialValues, children, on
 export default FormProvider;
 
 export {
-  fieldCache
+  fieldCache,
+  initial
 }

@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { get, isEqual }  from 'lodash';
+import { get, isEqual, merge, set }  from 'lodash';
+import isArray from 'isarray';
 
-import { fieldCache } from './form';
+import { fieldCache, initial } from './form';
 import FormContext from './context';
 import { genField } from './utils';
 
@@ -36,7 +37,6 @@ const MemoComponent = React.memo(({
   children,
   ...restProps
 }: any) => {
-  console.log(restProps, 'rerender');
   return React.cloneElement(
     renderComponent, {
       ...restProps,
@@ -140,17 +140,49 @@ const getFieldValue = (field) => {
   return get(formData, field);
 }
 
-const getFieldValues = () => {
+const getFieldsValue = () => {
   const { formData } = React.useContext(FormContext);
   return formData;
+}
+
+const isFieldTouched = (name: string) => {
+  return fieldCache[name] && fieldCache[name].isTouchedcache;
+}
+
+const resetFields = (names: string[]) => {
+  let data = {};
+  const { formData, setFormData } = React.useContext(FormContext);
+  if (!names) {
+    data = merge({}, initial);
+    Object.keys(fieldCache).forEach(field => {
+      const { cacheValue } = fieldCache[field];
+      if (cacheValue || cacheValue === null) {
+        set(data, field, cacheValue);
+      }
+    });
+  } else if (isArray(names)){
+    data = merge({}, formData);
+    names.forEach((field) => {
+      if (!fieldCache[field]) {
+        console.error('resetFields names must in getFieldDecorator field.');
+      } else {
+        const { cacheValue } = fieldCache[field];
+        set(data, field, cacheValue || get(initial, field));
+      }
+    })
+  }
+
+  setFormData(data);
 }
 
 const hooks = {
   useForm,
   getFieldDecorator,
   setFieldsValue,
-  getFieldValues,
-  getFieldValue
+  getFieldsValue,
+  getFieldValue,
+  isFieldTouched,
+  resetFields
 }
 
 export default hooks;

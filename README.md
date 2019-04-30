@@ -11,4 +11,20 @@ cd my-demo
 
 npm start
 
+
+支持apu如下：
+getFieldDecorator
+
+setFieldsValue
+
+getFieldsValue
+
+getFieldValue
+
+isFieldTouched
+
+resetFields
+
+connect
+
 新特性还在考虑，项目更新中...

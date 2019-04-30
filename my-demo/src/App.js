@@ -1,42 +1,66 @@
 import React from "react";
-import { Input } from 'antd';
+import { Button, Input } from 'antd';
+import 'antd/dist/antd.css'; 
+import Form, { useForm }  from "use-form-hooks";
 
-import Form, { hooks }  from "use-form-hooks";
+import './App.css';
 
 
-const { getFieldDecorator } = hooks;
+const bottom16 = {
+  marginBottom: '16px'
+}
 
 function Test() {
+  const { getFieldDecorator, getFieldsValue } = useForm();
+  function onSubmit(e) {
+    const values = getFieldsValue();
+  }
+
   return (
-    <div>
-      {getFieldDecorator("m", {
-        initialValue: 12
-      })(<Input placeholder="请输入" />)}
-      {getFieldDecorator("obj.b", {})(<Input placeholder="请输入" />)}
-      {getFieldDecorator("obj.c[0]", {
-        initialValue: 1
-      })(<Input placeholder="请输入" />)}
-      {getFieldDecorator("obj.c[1]", {
-        initialValue: 3
-      })(<Input placeholder="请输入" />)}
+    <div style={{ maxWidth: 300, margin: '0 auto'}}>
+        <div style={bottom16}>
+        {getFieldDecorator("m", {
+          initialValue: 12
+        })(<Input placeholder="请输入" />)}
+      </div>
+      <div style={bottom16}>
+        {getFieldDecorator("obj.b", {})(<Input placeholder="请输入" />)}
+      </div>
+      <div style={bottom16}>
+        {getFieldDecorator("obj.c[0]", {
+          initialValue: 1
+        })(<Input placeholder="请输入" />)}
+      </div>
+      <div style={bottom16}>
+        {getFieldDecorator("obj.c[1]", {
+          initialValue: 3
+        })(<Input placeholder="请输入" />)}
+      </div>
+      <Button
+        type="primary"
+        htmlType="submit"
+        className="login-form-button"
+        onClick={onSubmit}
+      >
+        保存
+      </Button>
     </div>
   );
 }
 
-function onSubmit(value) {
-  debugger;
-  console.log(value);
-}
-
 
 function App() {
+  function onSubmit(value) {
+    debugger
+    console.log(value);
+  }
+
   return (
     <div className="App">
-      <h1>Hello CodeSandbox</h1>
-      <h2>Start editing to see some magic happen!</h2>
+      <h1>Hello</h1>
+      <h2>welcome use use-form-hooks!</h2>
       <Form onSubmit={onSubmit} initialValues={{ m: 1 }}>
         <Test />
-        <input type="submit" value="提交" />
       </Form>
     </div>
   );

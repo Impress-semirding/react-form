@@ -35,130 +35,125 @@ var MemoComponent = React.memo(function (_a) {
     return lodash_1.isEqual(preProps[shouldCheckPropsKey], nextProps[shouldCheckPropsKey]);
 });
 function useForm(createOptions) {
+    if (createOptions === void 0) { createOptions = { name: new Date().getTime() }; }
     createOptions = createOptions;
-}
-//  后面迭代需要支持trigger方式和error等
-function getFieldDecorator(field, options) {
-    return function (component) {
-        var props = component.props, children = component.children;
-        var id = options.id, initialValue = options.initialValue, rules = options.rules, valuePropName = options.valuePropName;
-        var _a = React.useContext(context_1.default), formData = _a.formData, setFields = _a.setFields;
-        if (!form_1.fieldCache[field]) {
-            form_1.fieldCache[field] = {};
-        }
-        var _b = form_1.fieldCache[field], isTouchedcache = _b.isTouchedcache, cacheValue = _b.cacheValue;
-        if (!isTouchedcache) {
-            form_1.fieldCache[field].isTouchedcache = false;
-        }
-        /**
-         * 根据isTouch判断是否要更新formdata。如果为false，则使用初始值，不然使用更新后的值.
-         * initialValue优先级高于initialValues中的值。
-         * 需要考虑batch 更新，需要优化。
-         */
-        React.useMemo(function () {
-            if (!isTouchedcache && initialValue) {
-                form_1.fieldCache[field].cacheValue = initialValue;
-            }
-            else if (!isTouchedcache && !lodash_1.get(formData, field)) {
-                form_1.fieldCache[field].cacheValue = null;
-            }
-        }, []);
-        //  init child value.
-        var value;
-        if (!isTouchedcache && initialValue) {
-            value = initialValue;
-        }
-        else if (!isTouchedcache && lodash_1.get(formData, field)) {
-            value = lodash_1.get(formData, field);
-        }
-        else if (isTouchedcache) {
-            value = lodash_1.get(formData, field);
-        }
-        else {
-            value = null;
-        }
-        var dynamicField = {
-            value: value
-        };
-        if (valuePropName) {
-            dynamicField[valuePropName] = value;
-            delete dynamicField.value;
-        }
-        var onFieldChange = function (field) {
-            return function (ev) {
-                var _a;
-                var value;
-                if (ev.preventDefault) {
-                    value = ev.target.value;
-                }
-                else {
-                    value = ev;
-                }
-                form_1.fieldCache[field].isTouchedcache = true;
-                //  由于MemoComponent绑定的函数还处于栈中，formData也就还是旧的那个，故而不会更新，所以用全局变量替代。
-                setFields((_a = {}, _a[field] = value, _a));
-            };
-        };
-        return (React.createElement(MemoComponent, __assign({ shouldCheckPropsKey: valuePropName ? valuePropName : 'value', renderComponent: component }, props, dynamicField, { id: utils_1.genField(id || field, createOptions.name), onChange: onFieldChange(field) }), children));
-    };
-}
-var setFieldsValue = function (values) {
-    var _a = React.useContext(context_1.default), formData = _a.formData, setFields = _a.setFields;
-    setFields(values);
-};
-var getFieldValue = function (field) {
-    var formData = React.useContext(context_1.default).formData;
-    return lodash_1.get(formData, field);
-};
-var getFieldsValue = function () {
-    var formData = React.useContext(context_1.default).formData;
-    return formData;
-};
-var isFieldTouched = function (name) {
-    return form_1.fieldCache[name] && form_1.fieldCache[name].isTouchedcache;
-};
-var resetFields = function (names) {
-    var data = {};
-    var _a = React.useContext(context_1.default), formData = _a.formData, setFormData = _a.setFormData;
-    if (!names) {
-        data = lodash_1.merge({}, form_1.initial);
-        Object.keys(form_1.fieldCache).forEach(function (field) {
-            var cacheValue = form_1.fieldCache[field].cacheValue;
-            if (cacheValue || cacheValue === null) {
-                lodash_1.set(data, field, cacheValue);
-            }
-        });
-    }
-    else if (isarray_1.default(names)) {
-        data = lodash_1.merge({}, formData);
-        names.forEach(function (field) {
+    var _a = React.useContext(context_1.default), formData = _a.formData, getFormData = _a.getFormData, setFields = _a.setFields, setFormData = _a.setFormData;
+    //  后面迭代需要支持trigger方式和error等
+    function getFieldDecorator(field, options) {
+        return function (component) {
+            var props = component.props, children = component.children;
+            var id = options.id, initialValue = options.initialValue, rules = options.rules, valuePropName = options.valuePropName;
             if (!form_1.fieldCache[field]) {
-                console.error('resetFields names must in getFieldDecorator field.');
+                form_1.fieldCache[field] = {};
+            }
+            var _a = form_1.fieldCache[field], isTouchedcache = _a.isTouchedcache, cacheValue = _a.cacheValue;
+            if (!isTouchedcache) {
+                form_1.fieldCache[field].isTouchedcache = false;
+            }
+            /**
+             * 根据isTouch判断是否要更新formdata。如果为false，则使用初始值，不然使用更新后的值.
+             * initialValue优先级高于initialValues中的值。
+             * 需要考虑batch 更新，需要优化。
+             */
+            React.useMemo(function () {
+                if (!isTouchedcache && initialValue) {
+                    form_1.fieldCache[field].cacheValue = initialValue;
+                }
+                else if (!isTouchedcache && !lodash_1.get(formData, field)) {
+                    form_1.fieldCache[field].cacheValue = null;
+                }
+            }, []);
+            //  init child value.
+            var value;
+            if (!isTouchedcache && initialValue) {
+                value = initialValue;
+            }
+            else if (!isTouchedcache && lodash_1.get(formData, field)) {
+                value = lodash_1.get(formData, field);
+            }
+            else if (isTouchedcache) {
+                value = lodash_1.get(formData, field);
             }
             else {
-                var cacheValue = form_1.fieldCache[field].cacheValue;
-                lodash_1.set(data, field, cacheValue || lodash_1.get(form_1.initial, field));
+                value = null;
             }
-        });
+            var dynamicField = {
+                value: value
+            };
+            if (valuePropName) {
+                dynamicField[valuePropName] = value;
+                delete dynamicField.value;
+            }
+            var onFieldChange = function (field) {
+                return function (ev) {
+                    var _a;
+                    var value;
+                    if (ev.preventDefault) {
+                        value = ev.target.value;
+                    }
+                    else {
+                        value = ev;
+                    }
+                    form_1.fieldCache[field].isTouchedcache = true;
+                    //  由于MemoComponent绑定的函数还处于栈中，formData也就还是旧的那个，故而不会更新，所以用全局变量替代。
+                    setFields((_a = {}, _a[field] = value, _a));
+                };
+            };
+            return (React.createElement(MemoComponent, __assign({ shouldCheckPropsKey: valuePropName ? valuePropName : 'value', renderComponent: component }, props, dynamicField, { id: utils_1.genField(id || field, createOptions.name), onChange: onFieldChange(field) }), children));
+        };
     }
-    setFormData(data);
-};
-var connect = function () {
-    var _a = React.useContext(context_1.default), formData = _a.formData, setFormData = _a.setFormData;
-    return {
-        values: formData,
-        errors: []
+    var setFieldsValue = function (values) {
+        setFields(values);
     };
-};
-var hooks = {
-    useForm: useForm,
-    getFieldDecorator: getFieldDecorator,
-    setFieldsValue: setFieldsValue,
-    getFieldsValue: getFieldsValue,
-    getFieldValue: getFieldValue,
-    isFieldTouched: isFieldTouched,
-    resetFields: resetFields,
-    connect: connect
-};
-exports.default = hooks;
+    var getFieldValue = function (field) {
+        return lodash_1.get(getFormData(), field);
+    };
+    var getFieldsValue = function () {
+        return getFormData();
+    };
+    var isFieldTouched = function (name) {
+        return form_1.fieldCache[name] && form_1.fieldCache[name].isTouchedcache;
+    };
+    var resetFields = function (names) {
+        var data = {};
+        if (!names) {
+            data = lodash_1.merge({}, form_1.initial);
+            Object.keys(form_1.fieldCache).forEach(function (field) {
+                var cacheValue = form_1.fieldCache[field].cacheValue;
+                if (cacheValue || cacheValue === null) {
+                    lodash_1.set(data, field, cacheValue);
+                }
+            });
+        }
+        else if (isarray_1.default(names)) {
+            data = lodash_1.merge({}, getFormData());
+            names.forEach(function (field) {
+                if (!form_1.fieldCache[field]) {
+                    console.error('resetFields names must in getFieldDecorator field.');
+                }
+                else {
+                    var cacheValue = form_1.fieldCache[field].cacheValue;
+                    lodash_1.set(data, field, cacheValue || lodash_1.get(form_1.initial, field));
+                }
+            });
+        }
+        setFormData(data);
+    };
+    var connect = function () {
+        return {
+            values: getFormData(),
+            errors: []
+        };
+    };
+    return {
+        getFieldDecorator: getFieldDecorator,
+        setFieldsValue: setFieldsValue,
+        getFieldsValue: getFieldsValue,
+        getFieldValue: getFieldValue,
+        isFieldTouched: isFieldTouched,
+        resetFields: resetFields,
+        connect: connect
+    };
+}
+exports.default = useForm;
 //# sourceMappingURL=hook.js.map

@@ -1,8 +1,8 @@
 import Form from './form';
-import hooks from './hook';
+import useForm from './hook';
 
 export default Form;
 
 export {
-  hooks
+  useForm
 }

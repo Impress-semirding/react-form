@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { set, merge }  from 'lodash';
+import { set, merge, isArray, isObject }  from 'lodash';
 
 
 import FormContext from './context';
@@ -14,11 +14,30 @@ let fieldCache = {};
 let globalCache = {};
 let initial = null;
 
+function reducer(state, action) {
+  const { type, payload } = action;
+  const data = merge({}, state);
+  switch (type) {
+    case 'set': 
+      Object.keys(payload).forEach(key => {
+        set(data,key, payload[key])
+      });
+      return data;
+    case 'all-set':
+      return payload;
+    default:
+      throw new Error();
+  }
+}
+
 const FormProvider: React.FC<FormProviderProps> = ({ initialValues, children, onSubmit }) => {
-  const [ formData, setFormData ] = React.useState(initialValues || {});
+  const [ formData, dispatch ] = React.useReducer(reducer, initialValues);
+  const formRef = React.useRef();
+  React.useLayoutEffect(() => {
+    formRef.current = formData;
+  });
 
   function submit() {
-    let a: any = {}
     let data = merge({}, formData);
     Object.keys(fieldCache).forEach(field => {
       const { isTouchedcache , cacheValue } = fieldCache[field];
@@ -28,15 +47,18 @@ const FormProvider: React.FC<FormProviderProps> = ({ initialValues, children, on
     });
     onSubmit(data);
   }
+  //  formData maybe in closure.so provider getFormData for callback(closure) function.
+  function getFormData() {
+    return formRef.current;
+  }
+
+  function setFormData(payload: object) {
+    dispatch({ type: 'all-set', payload });
+  }
 
   //  由于getFieldDecorator是闭包返回Component，优化情况下可能会导致form值没有同步，故而全局变量记录同步。
-  function setFields(options: object) {
-    const data = merge({},globalCache);
-    Object.keys(options).forEach(key => {
-      set(data,key, options[key])
-    });
-    globalCache = data;
-    setFormData(data);
+  function setFields(payload: object) {
+    dispatch({ type: 'set', payload });
   }
 
   //  use by reset resetFields.
@@ -48,6 +70,7 @@ const FormProvider: React.FC<FormProviderProps> = ({ initialValues, children, on
     <FormContext.Provider
       value={{
         formData,
+        getFormData,
         setFields,
         setFormData
       }}

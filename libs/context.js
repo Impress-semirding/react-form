@@ -2,7 +2,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
 var FormContext = React.createContext({
     formData: {},
-    setFormData: function (params) { },
+    // getFormData: () => {},
+    // setFormData: (params) => {},
     setFields: function (params) { }
 });
 exports.default = FormContext;

@@ -2,13 +2,15 @@ import * as React from 'react';
 
 interface Context {
   formData: object;
+  getFormData: () => object;
   setFormData: (params) => void;
   setFields: (params) => void;
 }
 
 const FormContext = React.createContext({
   formData: {},
-  setFormData: (params) => {},
+  // getFormData: () => {},
+  // setFormData: (params) => {},
   setFields: (params) => {}
 } as Context);
 

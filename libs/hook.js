@@ -21,6 +21,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
 var lodash_1 = require("lodash");
+var isarray_1 = require("isarray");
 var form_1 = require("./form");
 var context_1 = require("./context");
 var utils_1 = require("./utils");
@@ -28,7 +29,6 @@ var createOptions = {};
 //  根据key优化更新子组件。
 var MemoComponent = React.memo(function (_a) {
     var renderComponent = _a.renderComponent, children = _a.children, restProps = __rest(_a, ["renderComponent", "children"]);
-    console.log(restProps, 'rerender');
     return React.cloneElement(renderComponent, __assign({}, restProps), children);
 }, function (preProps, nextProps) {
     var shouldCheckPropsKey = preProps.shouldCheckPropsKey;
@@ -110,16 +110,55 @@ var getFieldValue = function (field) {
     var formData = React.useContext(context_1.default).formData;
     return lodash_1.get(formData, field);
 };
-var getFieldValues = function () {
+var getFieldsValue = function () {
     var formData = React.useContext(context_1.default).formData;
     return formData;
+};
+var isFieldTouched = function (name) {
+    return form_1.fieldCache[name] && form_1.fieldCache[name].isTouchedcache;
+};
+var resetFields = function (names) {
+    var data = {};
+    var _a = React.useContext(context_1.default), formData = _a.formData, setFormData = _a.setFormData;
+    if (!names) {
+        data = lodash_1.merge({}, form_1.initial);
+        Object.keys(form_1.fieldCache).forEach(function (field) {
+            var cacheValue = form_1.fieldCache[field].cacheValue;
+            if (cacheValue || cacheValue === null) {
+                lodash_1.set(data, field, cacheValue);
+            }
+        });
+    }
+    else if (isarray_1.default(names)) {
+        data = lodash_1.merge({}, formData);
+        names.forEach(function (field) {
+            if (!form_1.fieldCache[field]) {
+                console.error('resetFields names must in getFieldDecorator field.');
+            }
+            else {
+                var cacheValue = form_1.fieldCache[field].cacheValue;
+                lodash_1.set(data, field, cacheValue || lodash_1.get(form_1.initial, field));
+            }
+        });
+    }
+    setFormData(data);
+};
+var connect = function () {
+    var _a = React.useContext(context_1.default), formData = _a.formData, setFormData = _a.setFormData;
+    return {
+        values: formData,
+        errors: []
+    };
 };
 var hooks = {
     useForm: useForm,
     getFieldDecorator: getFieldDecorator,
     setFieldsValue: setFieldsValue,
-    getFieldValues: getFieldValues,
-    getFieldValue: getFieldValue
+    getFieldsValue: getFieldsValue,
+    getFieldValue: getFieldValue,
+    isFieldTouched: isFieldTouched,
+    resetFields: resetFields,
+    connect: connect
 };
 exports.default = hooks;
 //# sourceMappingURL=hook.js.map

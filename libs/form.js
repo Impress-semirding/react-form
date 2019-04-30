@@ -5,9 +5,11 @@ var context_1 = require("./context");
 var fieldCache = {};
 exports.fieldCache = fieldCache;
 var globalCache = {};
+var initial = null;
+exports.initial = initial;
 var FormProvider = function (_a) {
     var initialValues = _a.initialValues, children = _a.children, onSubmit = _a.onSubmit;
-    var _b = React.useState(initialValues), formData = _b[0], setFormData = _b[1];
+    var _b = React.useState(initialValues || {}), formData = _b[0], setFormData = _b[1];
     function submit() {
         var a = {};
         var data = lodash_1.merge({}, formData);
@@ -28,9 +30,14 @@ var FormProvider = function (_a) {
         globalCache = data;
         setFormData(data);
     }
+    //  use by reset resetFields.
+    if (!initial) {
+        exports.initial = initial = lodash_1.merge({}, initialValues);
+    }
     return (React.createElement(context_1.default.Provider, { value: {
             formData: formData,
-            setFields: setFields
+            setFields: setFields,
+            setFormData: setFormData
         } },
         React.createElement("form", { onSubmit: submit }, children)));
 };

@@ -21,7 +21,6 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
 var lodash_1 = require("lodash");
-var isarray_1 = require("isarray");
 var form_1 = require("./form");
 var context_1 = require("./context");
 var utils_1 = require("./utils");
@@ -125,7 +124,7 @@ function useForm(createOptions) {
                 }
             });
         }
-        else if (isarray_1.default(names)) {
+        else if (lodash_1.isArray(names)) {
             data = lodash_1.merge({}, getFormData());
             names.forEach(function (field) {
                 if (!form_1.fieldCache[field]) {

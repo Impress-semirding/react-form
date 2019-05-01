@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { get, isEqual, merge, set }  from 'lodash';
-import isArray from 'isarray';
+import { get, isEqual, merge, set, isArray }  from 'lodash';
 
 import { fieldCache, initial } from './form';
 import FormContext from './context';

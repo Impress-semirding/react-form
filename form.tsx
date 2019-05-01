@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { set, merge, isArray, isObject }  from 'lodash';
+import { set, merge }  from 'lodash';
 
 
 import FormContext from './context';
@@ -11,7 +11,6 @@ interface FormProviderProps {
 }
 
 let fieldCache = {};
-let globalCache = {};
 let initial = null;
 
 function reducer(state, action) {

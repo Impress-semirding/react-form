@@ -4,7 +4,6 @@ var lodash_1 = require("lodash");
 var context_1 = require("./context");
 var fieldCache = {};
 exports.fieldCache = fieldCache;
-var globalCache = {};
 var initial = null;
 exports.initial = initial;
 function reducer(state, action) {

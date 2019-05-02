@@ -36,6 +36,9 @@ function Test() {
           initialValue: 3
         })(<Input placeholder="请输入" />)}
       </div>
+      <div style={bottom16}>
+        <Form.field name="obj.n[0]" Component={Input} />
+      </div>
       <Button
         type="primary"
         htmlType="submit"

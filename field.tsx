@@ -7,15 +7,36 @@ import { fieldCache, initial } from './form';
 interface FormFieldProps {
   name: string;
   value: any;
-  component?: (props: object) => React.ReactNode;
+  component?: any;
   render?: React.ReactNode;
   children?: React.ReactNode;
   onChange?: () => void;
   onBlur?: () => void;
 }
 
-const Field: React.FC<FormFieldProps> = ({ name, value, component, children }) => {
+const Field: React.FC<FormFieldProps> = ({ name, value, Component, children }) => {
   const { formData, setFields, setFormData } = React.useContext(FormContext);
+
+  if (!fieldCache[name]) {
+    fieldCache[name] = {};
+  }
+  const { isTouchedcache , cacheValue } = fieldCache[name];
+
+  if (!isTouchedcache) {
+    fieldCache[name].isTouchedcache = false;
+  }
+
+  // //  init child value.
+  // let value;
+  // if (!isTouchedcache && initialValue) {
+  //   value = initialValue;
+  // } else if (!isTouchedcache && get(formData, field)){
+  //   value = get(formData, field);
+  // } else if (isTouchedcache){
+  //   value = get(formData, field);
+  // } else {
+  //   value = null;
+  // }
 
   function onFieldChange(ev) {
     let value;
@@ -28,12 +49,12 @@ const Field: React.FC<FormFieldProps> = ({ name, value, component, children }) =
     setFields({ [name]: value });
   }
 
-  if (component) {
+  if (Component) {
     return (
       <div>
-        <component onChange={onFieldChange}>
+        <Component onChange={onFieldChange}>
           {children}
-        </component>
+        </Component>
       </div>
     )
   }

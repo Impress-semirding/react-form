@@ -59,9 +59,15 @@ const Field: React.FC<FormFieldProps> = ({ name, value, Component, children }) =
     )
   }
 
+
   return (
     <div>
-      {children}
+      {React.cloneElement(
+        children, {
+          ...children.props,
+          onChange: onFieldChange
+        },
+      )}
     </div>
   )
 }

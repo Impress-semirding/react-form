@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { set, merge }  from 'lodash';
+import { get, set, merge }  from 'lodash';
 
 import FormContext from './context';
 import { fieldCache, initial } from './form';
@@ -8,13 +8,13 @@ interface FormFieldProps {
   name: string;
   value: any;
   component?: any;
-  render?: React.ReactNode;
-  children?: React.ReactNode;
+  render?: React.ReactElement;
+  children?: React.ReactElement;
   onChange?: () => void;
   onBlur?: () => void;
 }
 
-const Field: React.FC<FormFieldProps> = ({ name, value, Component, children }) => {
+const Field: React.FC<FormFieldProps> = ({ name, value: initialValue, component: Component, children }) => {
   const { formData, setFields, setFormData } = React.useContext(FormContext);
 
   if (!fieldCache[name]) {
@@ -26,17 +26,17 @@ const Field: React.FC<FormFieldProps> = ({ name, value, Component, children }) =
     fieldCache[name].isTouchedcache = false;
   }
 
-  // //  init child value.
-  // let value;
-  // if (!isTouchedcache && initialValue) {
-  //   value = initialValue;
-  // } else if (!isTouchedcache && get(formData, field)){
-  //   value = get(formData, field);
-  // } else if (isTouchedcache){
-  //   value = get(formData, field);
-  // } else {
-  //   value = null;
-  // }
+  //  init child value.
+  let value;
+  if (!isTouchedcache && initialValue) {
+    value = initialValue;
+  } else if (!isTouchedcache && get(formData, name)){
+    value = get(formData, name);
+  } else if (isTouchedcache){
+    value = get(formData, name);
+  } else {
+    value = null;
+  }
 
   function onFieldChange(ev) {
     let value;
@@ -52,7 +52,7 @@ const Field: React.FC<FormFieldProps> = ({ name, value, Component, children }) =
   if (Component) {
     return (
       <div>
-        <Component onChange={onFieldChange}>
+        <Component onChange={onFieldChange} value={value}>
           {children}
         </Component>
       </div>
@@ -65,6 +65,7 @@ const Field: React.FC<FormFieldProps> = ({ name, value, Component, children }) =
       {React.cloneElement(
         children, {
           ...children.props,
+          value,
           onChange: onFieldChange
         },
       )}

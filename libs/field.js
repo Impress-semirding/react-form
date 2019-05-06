@@ -11,10 +11,11 @@ var __assign = (this && this.__assign) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
+var lodash_1 = require("lodash");
 var context_1 = require("./context");
 var form_1 = require("./form");
 var Field = function (_a) {
-    var name = _a.name, value = _a.value, Component = _a.Component, children = _a.children;
+    var name = _a.name, initialValue = _a.value, Component = _a.component, children = _a.children;
     var _b = React.useContext(context_1.default), formData = _b.formData, setFields = _b.setFields, setFormData = _b.setFormData;
     if (!form_1.fieldCache[name]) {
         form_1.fieldCache[name] = {};
@@ -23,17 +24,20 @@ var Field = function (_a) {
     if (!isTouchedcache) {
         form_1.fieldCache[name].isTouchedcache = false;
     }
-    // //  init child value.
-    // let value;
-    // if (!isTouchedcache && initialValue) {
-    //   value = initialValue;
-    // } else if (!isTouchedcache && get(formData, field)){
-    //   value = get(formData, field);
-    // } else if (isTouchedcache){
-    //   value = get(formData, field);
-    // } else {
-    //   value = null;
-    // }
+    //  init child value.
+    var value;
+    if (!isTouchedcache && initialValue) {
+        value = initialValue;
+    }
+    else if (!isTouchedcache && lodash_1.get(formData, name)) {
+        value = lodash_1.get(formData, name);
+    }
+    else if (isTouchedcache) {
+        value = lodash_1.get(formData, name);
+    }
+    else {
+        value = null;
+    }
     function onFieldChange(ev) {
         var _a;
         var value;
@@ -48,9 +52,9 @@ var Field = function (_a) {
     }
     if (Component) {
         return (React.createElement("div", null,
-            React.createElement(Component, { onChange: onFieldChange }, children)));
+            React.createElement(Component, { onChange: onFieldChange, value: value }, children)));
     }
-    return (React.createElement("div", null, React.cloneElement(children, __assign({}, children.props, { onChange: onFieldChange }))));
+    return (React.createElement("div", null, React.cloneElement(children, __assign({}, children.props, { value: value, onChange: onFieldChange }))));
 };
 exports.default = Field;
 //# sourceMappingURL=field.js.map

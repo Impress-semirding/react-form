@@ -37,9 +37,9 @@ function Test() {
         })(<Input placeholder="请输入" />)}
       </div>
       <div style={bottom16}>
-        <Form.field name="obj.n[0]" value={20}>
+        <Form.Field name="obj.n[0]" value={20}>
           <Input placeholder="请输入" />
-        </Form.field>
+        </Form.Field>
       </div>
       <Button
         type="primary"

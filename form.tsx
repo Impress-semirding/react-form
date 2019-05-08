@@ -29,8 +29,22 @@ function reducer(state, action) {
   }
 }
 
-const FormProvider: React.FC<FormProviderProps> = ({ initialValues, children, onSubmit }) => {
+function errorReducer(state, action) {
+  const { type, payload } = action;
+  switch (type) {
+    case 'setError': 
+      return {
+        ...state,
+        [payload.field]: payload.data
+      }
+    default:
+      throw new Error();
+  }
+}
+
+const FormProvider: React.FC<FormProviderProps> = ({ initialValues, validationSchema, children, onSubmit }) => {
   const [ formData, dispatch ] = React.useReducer(reducer, initialValues);
+  const [ errors, eDispatch ] = React.useReducer(errorReducer, initialValues);
   const formRef = React.useRef();
   React.useLayoutEffect(() => {
     formRef.current = formData;
@@ -51,6 +65,21 @@ const FormProvider: React.FC<FormProviderProps> = ({ initialValues, children, on
     return formRef.current;
   }
 
+  function isValid(data) {
+    if (validationSchema) {
+      validationSchema.isValid(data)
+        .then((valid) => {
+          eDispatch({
+            type: 'setError',
+            payload: {
+              field: data.field,
+              data: valid
+            }
+          })
+        })
+    }
+  }
+
   function setFormData(payload: object) {
     dispatch({ type: 'all-set', payload });
   }
@@ -69,6 +98,7 @@ const FormProvider: React.FC<FormProviderProps> = ({ initialValues, children, on
     <FormContext.Provider
       value={{
         formData,
+        errors,
         getFormData,
         setFields,
         setFormData

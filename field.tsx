@@ -45,6 +45,9 @@ const Field: React.FC<FormFieldProps> = ({ name, value: initialValue, component:
     } else {
       value = ev;
     }
+    if (children.onChange) {
+      children.onChange(value);
+    }
     fieldCache[name].isTouchedcache = true;
     setFields({ [name]: value });
   }

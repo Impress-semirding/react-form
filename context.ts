@@ -2,7 +2,7 @@ import * as React from 'react';
 
 interface Context {
   formData: object;
-  errors: object;
+  err: object;
   getFormData: () => object;
   setFormData: (params) => void;
   setFields: (params) => void;

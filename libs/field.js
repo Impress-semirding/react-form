@@ -47,6 +47,9 @@ var Field = function (_a) {
         else {
             value = ev;
         }
+        if (children.props.onChange) {
+            children.props.onChange(value);
+        }
         form_1.fieldCache[name].isTouchedcache = true;
         setFields((_a = {}, _a[name] = value, _a));
     }

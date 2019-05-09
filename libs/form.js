@@ -1,3 +1,14 @@
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
 var lodash_1 = require("lodash");
@@ -21,9 +32,19 @@ function reducer(state, action) {
             throw new Error();
     }
 }
+function errorReducer(state, action) {
+    var type = action.type, payload = action.payload;
+    switch (type) {
+        case 'setError':
+            return __assign({}, state, { payload: payload });
+        default:
+            throw new Error();
+    }
+}
 var FormProvider = function (_a) {
-    var initialValues = _a.initialValues, children = _a.children, onSubmit = _a.onSubmit;
+    var initialValues = _a.initialValues, validationSchema = _a.validationSchema, children = _a.children, onSubmit = _a.onSubmit;
     var _b = React.useReducer(reducer, initialValues), formData = _b[0], dispatch = _b[1];
+    var _c = React.useReducer(errorReducer, initialValues), err = _c[0], eDispatch = _c[1];
     var formRef = React.useRef();
     React.useLayoutEffect(function () {
         formRef.current = formData;
@@ -42,11 +63,27 @@ var FormProvider = function (_a) {
     function getFormData() {
         return formRef.current;
     }
+    function isValid(data) {
+        if (validationSchema) {
+            validationSchema.validate(data)
+                .catch(function (err) {
+                var errors = err.errors, values = err.values;
+                eDispatch({
+                    type: 'setError',
+                    payload: {
+                        errors: errors,
+                        values: values
+                    }
+                });
+            });
+        }
+    }
     function setFormData(payload) {
         dispatch({ type: 'all-set', payload: payload });
     }
     //  由于getFieldDecorator是闭包返回Component，优化情况下可能会导致form值没有同步，故而全局变量记录同步。
     function setFields(payload) {
+        isValid(payload);
         dispatch({ type: 'set', payload: payload });
     }
     //  use by reset resetFields.
@@ -55,6 +92,7 @@ var FormProvider = function (_a) {
     }
     return (React.createElement(context_1.default.Provider, { value: {
             formData: formData,
+            err: err,
             getFormData: getFormData,
             setFields: setFields,
             setFormData: setFormData

@@ -1,13 +1,15 @@
 import * as React from 'react';
 import { set, merge }  from 'lodash';
 
-
 import FormContext from './context';
 
 interface FormProviderProps {
   initialValues?: object;
   onSubmit: (data) => void;
   children: React.ReactNode;
+  validationSchema?: {
+    validate: (data) => any;
+  };
 }
 
 let fieldCache = {};
@@ -32,10 +34,10 @@ function reducer(state, action) {
 function errorReducer(state, action) {
   const { type, payload } = action;
   switch (type) {
-    case 'setError': 
+    case 'setError':
       return {
         ...state,
-        [payload.field]: payload.data
+        payload
       }
     default:
       throw new Error();
@@ -44,7 +46,7 @@ function errorReducer(state, action) {
 
 const FormProvider: React.FC<FormProviderProps> = ({ initialValues, validationSchema, children, onSubmit }) => {
   const [ formData, dispatch ] = React.useReducer(reducer, initialValues);
-  const [ errors, eDispatch ] = React.useReducer(errorReducer, initialValues);
+  const [ err, eDispatch ] = React.useReducer(errorReducer, initialValues);
   const formRef = React.useRef();
   React.useLayoutEffect(() => {
     formRef.current = formData;
@@ -67,13 +69,14 @@ const FormProvider: React.FC<FormProviderProps> = ({ initialValues, validationSc
 
   function isValid(data) {
     if (validationSchema) {
-      validationSchema.isValid(data)
-        .then((valid) => {
+      validationSchema.validate(data)
+        .catch((err) => {
+          const { errors, values } = err;
           eDispatch({
             type: 'setError',
             payload: {
-              field: data.field,
-              data: valid
+              errors,
+              values
             }
           })
         })
@@ -86,6 +89,7 @@ const FormProvider: React.FC<FormProviderProps> = ({ initialValues, validationSc
 
   //  由于getFieldDecorator是闭包返回Component，优化情况下可能会导致form值没有同步，故而全局变量记录同步。
   function setFields(payload: object) {
+    isValid(payload);
     dispatch({ type: 'set', payload });
   }
 
@@ -98,7 +102,7 @@ const FormProvider: React.FC<FormProviderProps> = ({ initialValues, validationSc
     <FormContext.Provider
       value={{
         formData,
-        errors,
+        err,
         getFormData,
         setFields,
         setFormData

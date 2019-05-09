@@ -1,7 +1,8 @@
 import React from "react";
 import { Button, Input } from 'antd';
 import 'antd/dist/antd.css'; 
-import Form, { useForm }  from "use-form-hooks";
+import Form, { useForm, Field }  from "use-form-hooks";
+import * as yup from 'yup';
 
 import './App.css';
 
@@ -9,6 +10,14 @@ import './App.css';
 const bottom16 = {
   marginBottom: '16px'
 }
+
+let schema = yup.object({
+  m: yup.boolean(),
+  'obj.b': yup.number(),
+  'obj.c[0]': yup.number()
+});
+
+// => { baz: 'boom',  x: 5, foo: { bar: 'boom' } }
 
 function Test() {
   const { getFieldDecorator, getFieldsValue } = useForm();
@@ -37,9 +46,9 @@ function Test() {
         })(<Input placeholder="请输入" />)}
       </div>
       <div style={bottom16}>
-        <Form.Field name="obj.n[0]" value={20}>
+        <Field name="obj.n[0]" value={20}>
           <Input placeholder="请输入" />
-        </Form.Field>
+        </Field>
       </div>
       <Button
         type="primary"
@@ -56,7 +65,6 @@ function Test() {
 
 function App() {
   function onSubmit(value) {
-    debugger
     console.log(value);
   }
 
@@ -64,7 +72,7 @@ function App() {
     <div className="App">
       <h1>Hello</h1>
       <h2>welcome use use-form-hooks!</h2>
-      <Form onSubmit={onSubmit} initialValues={{ m: 1 }}>
+      <Form onSubmit={onSubmit} initialValues={{ m: 1 }} validationSchema={schema}>
         <Test />
       </Form>
     </div>

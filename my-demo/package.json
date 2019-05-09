@@ -56,7 +56,8 @@
     "webpack": "4.29.6",
     "webpack-dev-server": "3.2.1",
     "webpack-manifest-plugin": "2.0.4",
-    "workbox-webpack-plugin": "4.2.0"
+    "workbox-webpack-plugin": "4.2.0",
+    "yup": "^0.27.0"
   },
   "scripts": {
     "start": "node scripts/start.js",

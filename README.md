@@ -27,4 +27,4 @@ resetFields
 
 connect
 
-新特性还在考虑，项目更新中...
+支持<Field>标签替代getFieldDecorator
